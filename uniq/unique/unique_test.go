@@ -6,19 +6,21 @@ import (
 )
 
 var tests = []struct {
+	name    string
 	str     []string
 	options Options
 	res     []string
 }{
-	{[]string{"I love music.",
-		"I love music.",
-		"I love music.",
-		"",
-		"I love music of Kartik.",
-		"I love music of Kartik.",
-		"Thanks.",
-		"I love music of Kartik.",
-		"I love music of Kartik."},
+	{"1",
+		[]string{"I love music.",
+			"I love music.",
+			"I love music.",
+			"",
+			"I love music of Kartik.",
+			"I love music of Kartik.",
+			"Thanks.",
+			"I love music of Kartik.",
+			"I love music of Kartik."},
 		Options{
 			Count:      false,
 			Duplicate:  false,
@@ -33,15 +35,16 @@ var tests = []struct {
 			"Thanks.",
 			"I love music of Kartik."}},
 
-	{[]string{"I love music.",
-		"I love music.",
-		"I love music.",
-		"",
-		"I love music of Kartik.",
-		"I love music of Kartik.",
-		"Thanks.",
-		"I love music of Kartik.",
-		"I love music of Kartik."},
+	{"2",
+		[]string{"I love music.",
+			"I love music.",
+			"I love music.",
+			"",
+			"I love music of Kartik.",
+			"I love music of Kartik.",
+			"Thanks.",
+			"I love music of Kartik.",
+			"I love music of Kartik."},
 		Options{
 			Count:      true,
 			Duplicate:  false,
@@ -56,15 +59,16 @@ var tests = []struct {
 			"1 Thanks.",
 			"2 I love music of Kartik."}},
 
-	{[]string{"I love music.",
-		"I love music.",
-		"I love music.",
-		"",
-		"I love music of Kartik.",
-		"I love music of Kartik.",
-		"Thanks.",
-		"I love music of Kartik.",
-		"I love music of Kartik."},
+	{"3",
+		[]string{"I love music.",
+			"I love music.",
+			"I love music.",
+			"",
+			"I love music of Kartik.",
+			"I love music of Kartik.",
+			"Thanks.",
+			"I love music of Kartik.",
+			"I love music of Kartik."},
 		Options{
 			Count:      false,
 			Duplicate:  true,
@@ -77,15 +81,16 @@ var tests = []struct {
 			"I love music of Kartik.",
 			"I love music of Kartik."}},
 
-	{[]string{"I love music.",
-		"I love music.",
-		"I love music.",
-		"",
-		"I love music of Kartik.",
-		"I love music of Kartik.",
-		"Thanks.",
-		"I love music of Kartik.",
-		"I love music of Kartik."},
+	{"4",
+		[]string{"I love music.",
+			"I love music.",
+			"I love music.",
+			"",
+			"I love music of Kartik.",
+			"I love music of Kartik.",
+			"Thanks.",
+			"I love music of Kartik.",
+			"I love music of Kartik."},
 		Options{
 			Count:      false,
 			Duplicate:  false,
@@ -97,15 +102,16 @@ var tests = []struct {
 		[]string{"",
 			"Thanks."}},
 
-	{[]string{"I LOVE MUSIC.",
-		"I love music.",
-		"I LoVe MuSiC.",
-		"",
-		"I love MuSIC of Kartik.",
-		"I love music of kartik.",
-		"Thanks.",
-		"I love music of kartik.",
-		"I love MuSIC of Kartik."},
+	{"5",
+		[]string{"I LOVE MUSIC.",
+			"I love music.",
+			"I LoVe MuSiC.",
+			"",
+			"I love MuSIC of Kartik.",
+			"I love music of kartik.",
+			"Thanks.",
+			"I love music of kartik.",
+			"I love MuSIC of Kartik."},
 		Options{
 			Count:      false,
 			Duplicate:  false,
@@ -114,19 +120,20 @@ var tests = []struct {
 			SkipChars:  0,
 			Ignore:     true,
 		},
-		[]string{"I LOVE MUSIC.",
+		[]string{"I LoVe MuSiC.",
 			"",
-			"I love MuSIC of Kartik.",
+			"I love music of kartik.",
 			"Thanks.",
-			"I love music of kartik."}},
+			"I love MuSIC of Kartik."}},
 
-	{[]string{"We love music.",
-		"I love music.",
-		"They love music.",
-		"",
-		"I love music of Kartik.",
-		"We love music of Kartik.",
-		"Thanks."},
+	{"6",
+		[]string{"We love music.",
+			"I love music.",
+			"They love music.",
+			"",
+			"I love music of Kartik.",
+			"We love music of Kartik.",
+			"Thank you."},
 		Options{
 			Count:      false,
 			Duplicate:  false,
@@ -135,19 +142,20 @@ var tests = []struct {
 			SkipChars:  0,
 			Ignore:     false,
 		},
-		[]string{"We love music.",
+		[]string{"They love music.",
+			"",
+			"We love music of Kartik.",
+			"Thank you."}},
+
+	{"7",
+		[]string{"I love music.",
+			"A love music.",
+			"I love music.",
+			"C love music.",
 			"",
 			"I love music of Kartik.",
-			"Thanks."}},
-
-	{[]string{"I love music.",
-		"A love music.",
-		"I love music.",
-		"C love music.",
-		"",
-		"I love music of Kartik.",
-		"We love music of Kartik.",
-		"Thanks."},
+			"We love music of Kartik.",
+			"Thanks."},
 		Options{
 			Count:      false,
 			Duplicate:  false,
@@ -156,15 +164,20 @@ var tests = []struct {
 			SkipChars:  1,
 			Ignore:     false,
 		},
-		[]string{"I love music.",
+		[]string{"C love music.",
 			"",
 			"I love music of Kartik.",
 			"We love music of Kartik.",
 			"Thanks."}},
 }
 
-func TestUniqueCorrect(t *testing.T) {
-	for _, e := range tests {
-		require.Equal(t, e.res, Unique(e.str, e.options), "Check Unique func")
+func TestTUniq(t *testing.T) {
+	t.Parallel()
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, test.res, Unique(test.str, test.options), "Check Unique func")
+		})
 	}
 }

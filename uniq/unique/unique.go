@@ -1,7 +1,6 @@
 package unique
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -31,27 +30,29 @@ func (options Options) Correct() bool {
 	return true
 }
 
-func cutLine(str string, options Options) (res string) {
+func cutLine(str string, skipFields, skipChars int) (res string) {
 	if len(str) == 0 {
 		return str
 	}
 
-	res = ""
-	cutStr := strings.Fields(str)[options.SkipFields:]
-
-	for i := range cutStr {
-		res = fmt.Sprintf("%s %s", res, cutStr[i])
-	}
-
-	if len(res) <= options.SkipChars+1 {
+	if len(strings.Fields(str)) <= skipFields {
 		return ""
 	}
 
-	return res[options.SkipChars+1:]
+	cutStr := strings.Fields(str)[skipFields:]
+
+	myslice := []string{res, strings.Join(cutStr, "")}
+	res = strings.Join(myslice, "")
+
+	if len(res) <= skipChars {
+		return ""
+	}
+
+	return res[skipChars:]
 }
 
-func equal(str1, str2 string, options Options) bool {
-	if options.Ignore {
+func equal(str1, str2 string, ignore bool) bool {
+	if ignore {
 		return strings.EqualFold(str1, str2)
 	}
 
@@ -68,33 +69,28 @@ func Unique(str []string, options Options) (res []string) {
 		options.Duplicate = true
 	}
 
+	str = append(str, "\n")
 	var repeats int
-	prev := cutLine(str[0], options)
-	if (options.Duplicate && repeats == 0) || (options.Unique && repeats != 0) {
-		res = append(res, str[0])
-	}
+	prev := cutLine(str[0], options.SkipFields, options.SkipChars)
 
 	for i := 1; i < len(str); i++ {
-		cur := cutLine(str[i], options)
+		cur := cutLine(str[i], options.SkipFields, options.SkipChars)
 
-		if equal(prev, cur, options) {
+		if equal(prev, cur, options.Ignore) {
 			repeats++
-			continue
+		} else {
+			if options.Count {
+				res = append(res, strconv.Itoa(repeats+1)+" "+str[i-1])
+				repeats = 0
+			} else {
+				if (options.Duplicate && repeats != 0) || (options.Unique && repeats == 0) {
+					res = append(res, str[i-1])
+				}
+				repeats = 0
+			}
 		}
-
-		if options.Count {
-			res = append(res, strconv.Itoa(repeats+1)+" "+str[i-1])
-		} else if (options.Duplicate && repeats == 0) || (options.Unique && repeats != 0) {
-			res = append(res, str[i])
-		}
-
-		repeats = 0
 		prev = cur
 	}
 
-	if options.Count {
-		res = append(res, strconv.Itoa(repeats+1)+" "+str[len(str)-1])
-	}
-
-	return
+	return res
 }

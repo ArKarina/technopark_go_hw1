@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -27,11 +28,16 @@ func parseOptions(ostream []string) (options unique.Options, inputFile, outputFi
 	return options, inputFile, outputFile
 }
 
-func readInfo(inputFile string) (buf []string) {
+func readInfo(inputFile string) (buf []string, err error) {
 	var r io.Reader
 
 	if inputFile != "" {
-		r, _ = os.Open(inputFile)
+		f, err := os.Open(inputFile)
+		if err != nil {
+			return buf, errors.New("error open file")
+		}
+		defer f.Close()
+		r = f
 	} else {
 		r = os.Stdin
 	}
@@ -41,17 +47,18 @@ func readInfo(inputFile string) (buf []string) {
 		buf = append(buf, scanner.Text())
 	}
 
-	return
+	return buf, nil
 }
 
-func writeInfo(buf []string, outputFile string) {
+func writeInfo(buf []string, outputFile string) error {
 	var w io.Writer
 
 	if outputFile != "" {
 		f, err := os.Create(outputFile)
 		if err != nil {
-			log.Fatal("error create file")
+			return errors.New("error create file")
 		}
+		defer f.Close()
 		w = f
 	} else {
 		w = os.Stdout
@@ -59,9 +66,11 @@ func writeInfo(buf []string, outputFile string) {
 
 	for _, elem := range buf {
 		if _, err := w.Write([]byte(elem + "\n")); err != nil {
-			log.Fatal("error write to file")
+			return errors.New("error write to file")
 		}
 	}
+
+	return nil
 }
 
 func main() {
@@ -72,9 +81,16 @@ func main() {
 		return
 	}
 
-	buf := readInfo(inputFile)
+	buf, err := readInfo(inputFile)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	resBuf := unique.Unique(buf, options)
 
-	writeInfo(resBuf, outputFile)
+	if err = writeInfo(resBuf, outputFile); err != nil {
+		log.Fatal(err)
+		return
+	}
 }
